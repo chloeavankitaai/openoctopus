@@ -237,14 +237,14 @@ def get_run_cmd(config: dict, gpu_nums: int):
     --beta {beta} \
     --num_generations {num_generations} \
     --loss_type dr_grpo \
-    --num_iterations 2 \
+    --num_iterations 3 \
     --do_eval False \
     --vllm_max_model_length {vllm_max_model_length}"""
     )
 
     if config.get("use_lora", False):
         template += (
-            " --use_peft --lora_r 32 --lora_alpha 64 --lora_target_modules all-linear"
+            " --use_peft --lora_r 64 --lora_alpha 128 --lora_target_modules all-linear"
         )
 
     if config.get("use_vllm", True):
