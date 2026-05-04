@@ -305,7 +305,6 @@ def _run_episode(
     action masking (mask=1 for LLM completions, mask=0 for environment turns).
     When ``use_full_prompt=False``, only the final turn's token IDs are kept.
     """
-    current_max_turn = 5
     game_id = int(prompt)
 
     server_idx   = (index + rank) % num_servers
@@ -366,7 +365,7 @@ def _run_episode(
 
     # --- Build system prompt ---
     system_prompt = (
-        '"You are playing liars_dice.\n\n# Game Rules\nLIAR\'S DICE RULES:\n\n'
+        'You are playing liars_dice.\n\n# Game Rules\nLIAR\'S DICE RULES:\n\n'
         'Setup: Each player has N dice (1-5 depending on variant). All players roll their dice secretly.\n\n'
         'Goal: Make bids about total dice across ALL players, or call "Liar" on opponent\'s bid.\n\n'
         'Actions:\n- Bid (quantity, face): Claim there are at least \'quantity\' dice showing \'face\' among all dice.\n'
@@ -381,7 +380,6 @@ def _run_episode(
         '# Output Format\nYou must respond with ONLY the action ID (a single number).\n'
         'Do NOT include descriptions or explanations.\n\n'
         'Examples:\n- For action "0 -> roll": respond "0"\n- For action "89 -> a3": respond "89"'
-        '"'
     )
     if use_hints:
         system_prompt += (
@@ -615,7 +613,11 @@ def _dispatch(prompts, trainer, *, use_full_prompt: bool) -> dict[str, list]:
     results = [None] * len(prompts)
     futures = [_state["thread_pool"].submit(run, i, p) for i, p in enumerate(prompts)]
     for f in as_completed(futures):
-        idx, res = f.result()
+        try:
+            idx, res = f.result()
+        except Exception as exc:
+            print(f"Episode future raised an exception: {exc}")
+            continue
         results[idx] = res if res is not None else _fallback
 
     curriculum.step(len(prompts))

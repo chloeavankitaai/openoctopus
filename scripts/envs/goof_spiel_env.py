@@ -650,7 +650,11 @@ def rollout_last_prompt_and_completion_parallelized_curriculum(
     results = [None] * len(prompts)
     futures = [_state["thread_pool"].submit(run, i, p) for i, p in enumerate(prompts)]
     for f in as_completed(futures):
-        idx, res = f.result()
+        try:
+            idx, res = f.result()
+        except Exception as exc:
+            print(f"Episode future raised an exception: {exc}")
+            continue
         results[idx] = res if res is not None else _fallback
 
     curriculum.step(len(prompts))
@@ -702,7 +706,11 @@ def rollout_full_prompt_and_completion_parallelized_curriculum(
     results = [None] * len(prompts)
     futures = [_state["thread_pool"].submit(run, i, p) for i, p in enumerate(prompts)]
     for f in as_completed(futures):
-        idx, res = f.result()
+        try:
+            idx, res = f.result()
+        except Exception as exc:
+            print(f"Episode future raised an exception: {exc}")
+            continue
         results[idx] = res if res is not None else _fallback
 
     curriculum.step(len(prompts))

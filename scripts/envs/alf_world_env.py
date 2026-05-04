@@ -275,7 +275,11 @@ def _dispatch(prompts, trainer, *, use_full_prompt: bool, max_turns: int) -> dic
     results = [None] * len(prompts)
     futures = [_state["thread_pool"].submit(run, i, p) for i, p in enumerate(prompts)]
     for f in as_completed(futures):
-        idx, res = f.result()
+        try:
+            idx, res = f.result()
+        except Exception as exc:
+            print(f"Episode future raised an exception: {exc}")
+            continue
         results[idx] = res if res is not None else _fallback
 
     list_results = [r for r in results if r is not None]
